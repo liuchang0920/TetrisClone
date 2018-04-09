@@ -73,5 +73,71 @@ public class Board : MonoBehaviour {
     bool IsOccupied(int x, int y, Shape shape) {
         return (m_grid[x, y] != null && m_grid[x, y].parent != shape.transform);// differet object    
     }
+    
+    bool IsCompleted(int y) {
+        for(int x=0;x<m_width;x++)
+        {
+            if(m_grid[x, y] == null)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    void ClearRow(int y) {
+        for(int x=0;x<m_width;x++)
+        {
+            if(m_grid[x, y] != null) {
+                Destroy(m_grid[x, y].gameObject);
+            }
+            m_grid[x, y] = null;
+        }
+    }
 
+    void ShiftOneRowDown(int y)
+    {
+        for(int x=0;x<m_width;x++)
+        {
+            if(m_grid[x, y] != null)
+            {
+                m_grid[x, y - 1] = m_grid[x, y];
+                m_grid[x, y] = null;
+                m_grid[x, y - 1].position += new Vector3(0, -1, 0); //move physical space,  move position ??
+            }
+        }
+    }
+
+    void ShiftRowsDown(int startY) 
+    {
+        for(int i=startY;i<m_height;i++)
+        {
+            ShiftOneRowDown(i);
+        }
+    }
+
+    public void ClearAllRows()
+    {
+        for(int y=0;y<m_height; y++)
+        {
+            if(IsCompleted(y))
+            {
+                ClearRow(y);
+                ShiftRowsDown(y + 1);
+                y--; // after shifted, retest current row
+            }
+        }
+    }
+
+    public bool IsOverLimit(Shape shape)
+    {
+        foreach(Transform child in shape.transform)
+        {
+            if(child.transform.position.y >= (m_height - m_header -1))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }

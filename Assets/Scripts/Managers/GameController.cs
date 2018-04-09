@@ -10,16 +10,44 @@ public class GameController : MonoBehaviour {
     Shape m_activeShape; // keep track of current shape
 
     float m_dropInterval = .9f;
-    float m_timeToDrop;
+    public  float m_timeToDrop;
+
     float m_timeToNextkey;
 
-    [Range(0.02f, 1)] // range selector, so that could change the value in the editor 
-    public float m_keyRepeatRate = 0.25f;
+    [Range(0.02f, 1f)] // range selector, so that could change the value in the editor 
+    public float m_keyRepeatRate = 0.15f;
 
-	// Use this for initialization
-	void Start () {
+    float m_timeToNextKeyLeftRight;
+
+    [Range(0.02f, 1f)]
+    public float m_keyRepeatRateLeftRight = 0.25f;
+
+    float m_timeToNextKeyDown;
+
+    [Range(0.02f, 1f)]
+    public float m_keyRepeatRateDown = 0.01f;
+
+    float m_timeToNextKeyRotate;
+
+    [Range(0.02f, 1f)]
+    public float m_keyRepeatRateRotate = 0.25f;
+
+    // game over flag
+    bool m_gameOver = false;
+
+    // game over panel
+    public GameObject m_gameOverPanel;
+
+    // Use this for initialization
+    void Start () {
         m_gameBoard = GameObject.FindWithTag("Board").GetComponent<Board>();
         m_spawner = GameObject.FindWithTag("Spawner").GetComponent<Spawner>();
+
+        // init time values
+        m_timeToNextKeyLeftRight = Time.time + m_keyRepeatRateLeftRight;
+        m_timeToNextKeyDown = Time.time + m_keyRepeatRateDown;
+        m_timeToNextKeyRotate = Time.time + m_keyRepeatRateRotate;
+
 
         //if(m_spawner){
         //    if(m_activeShape == null) {
@@ -41,11 +69,17 @@ public class GameController : MonoBehaviour {
                 m_activeShape = m_spawner.ShapeSpawner();
             }
         }
-	}
+
+        if(m_gameOverPanel)
+        {
+            m_gameOverPanel.SetActive(false);
+        }
+    }
 	
 	// Update is called once per frame
 	void Update () {
-        if(!m_gameBoard || !m_spawner || !m_activeShape) {
+
+        if(!m_gameBoard || !m_spawner || !m_activeShape || m_gameOver) {
             return;
         }
 
@@ -54,42 +88,48 @@ public class GameController : MonoBehaviour {
 
     void PlayerInput() {
         // handle input
-        if (Input.GetButton("MoveRight") && Time.time > m_timeToNextkey || Input.GetButtonDown("MoveRight")){
+        if (Input.GetButton("MoveRight") && Time.time > m_timeToNextKeyLeftRight || Input.GetButtonDown("MoveRight")){
             m_activeShape.MoveRight();
-            m_timeToNextkey = Time.time + m_keyRepeatRate;
+            m_timeToNextKeyLeftRight = Time.time + m_keyRepeatRateLeftRight;
 
             if (!m_gameBoard.IsValidPosition(m_activeShape))
             {
                 m_activeShape.MoveLeft();
                 Debug.Log("hit the right boundary");
             }
-        } else if (Input.GetButton("MoveLeft") && Time.time > m_timeToNextkey || Input.GetButtonDown("MoveLeft")){
+        } else if (Input.GetButton("MoveLeft") && Time.time > m_timeToNextKeyLeftRight || Input.GetButtonDown("MoveLeft")){
             m_activeShape.MoveLeft();
-            m_timeToNextkey = Time.time + m_keyRepeatRate;
+            m_timeToNextKeyLeftRight = Time.time + m_keyRepeatRateLeftRight;
 
             if (!m_gameBoard.IsValidPosition(m_activeShape))
             {
                 m_activeShape.MoveRight();
                 Debug.Log("hit the left boundary");
             }
-        }  else if (Input.GetButton("Rotate") && Time.time > m_timeToNextkey){
+        }  else if (Input.GetButton("Rotate") && Time.time > m_timeToNextKeyRotate){
             m_activeShape.RotateRight();
-            m_timeToNextkey = Time.time + m_keyRepeatRate;
+            m_timeToNextKeyRotate = Time.time + m_keyRepeatRateRotate;
 
             if (!m_gameBoard.IsValidPosition(m_activeShape))
             {
                 m_activeShape.RotateLeft();
                 Debug.Log("rotate right");
             }
-        } else if (Input.GetButton("MoveDown") && Time.time > m_timeToNextkey || (Time.time > m_timeToDrop))
+        } else if (Input.GetButton("MoveDown") && Time.time > m_timeToNextKeyDown || (Time.time > m_timeToDrop))
         {
             m_activeShape.MoveDown();
-            m_timeToNextkey = Time.time + m_keyRepeatRate;
+            m_timeToNextKeyDown = Time.time + m_keyRepeatRateDown;
             m_timeToDrop = Time.time + m_dropInterval;
 
             if (!m_gameBoard.IsValidPosition(m_activeShape))
             {
-                LandShape();
+                if(m_gameBoard.IsOverLimit(m_activeShape))
+                {
+                    GameOver();
+                } else
+                {
+                    LandShape();
+                }
             }
         }
 
@@ -114,9 +154,35 @@ public class GameController : MonoBehaviour {
     }
 
     void LandShape() {
-        m_timeToNextkey = Time.time; // ??
+        //  m_timeToNextkey = Time.time; // ??
+        // 下落到底端以后可以立即触发生成新的方块
+        m_timeToNextKeyLeftRight = Time.time;
+        m_timeToNextKeyDown = Time.time;
+        m_timeToNextKeyRotate = Time.time;
+
         m_activeShape.MoveUp();
         m_gameBoard.StoreShapeInGrid(m_activeShape);
         m_activeShape = m_spawner.ShapeSpawner();
+
+        m_gameBoard.ClearAllRows();
+    }
+
+    public void Restart()
+    {
+        Debug.Log("Restarted");
+        Application.LoadLevel(Application.loadedLevel);
+
+    }
+
+    void GameOver()
+    {
+        m_gameOver = true;
+        m_activeShape.MoveUp();
+        Debug.LogWarning(m_activeShape.name + " is over the limit!");
+        if (m_gameOverPanel)
+        {
+            m_gameOverPanel.SetActive(true);
+        }
     }
 }
+ 
