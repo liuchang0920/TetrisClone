@@ -41,12 +41,19 @@ public class GameController : MonoBehaviour {
     // sound manager reference
     SoundManager m_soundManager;
 
+    // icon toggle for rotate goes in this class
+    public IconToggle m_rotIconToggle;
+    bool m_clockwise = true;
+
+    // pause the game
+    public bool m_isPaused = false;
+    public GameObject m_pausePanel;
+
     // Use this for initialization
     void Start () {
         m_gameBoard = GameObject.FindWithTag("Board").GetComponent<Board>();
         m_spawner = GameObject.FindWithTag("Spawner").GetComponent<Spawner>();
         m_soundManager = GameObject.FindObjectOfType<SoundManager>();
-
 
 
         // init time values
@@ -81,11 +88,15 @@ public class GameController : MonoBehaviour {
             }
         }
 
+        // reset game
         if(m_gameOverPanel)
         {
             m_gameOverPanel.SetActive(false);
         }
-
+        if(m_pausePanel)
+        {
+            m_pausePanel.SetActive(false);
+        }
         //if(m_soundManager.m_fxEnabled && m_soundManager.m_moveSound)
         //{
         //    AudioSource.PlayClipAtPoint(m_soundManager.m_moveSound, Camera.main.transform.position, m_soundManager.m_fxVolume);
@@ -135,13 +146,16 @@ public class GameController : MonoBehaviour {
 
             }
         }  else if (Input.GetButton("Rotate") && Time.time > m_timeToNextKeyRotate){
-            m_activeShape.RotateRight();
+            // m_activeShape.RotateRight();
+            m_activeShape.RotateClockwise(m_clockwise);
             m_timeToNextKeyRotate = Time.time + m_keyRepeatRateRotate;
 
             if (!m_gameBoard.IsValidPosition(m_activeShape))
             {
                 PlaySound(m_soundManager.m_errorSound, 1.0f);
-                m_activeShape.RotateLeft();
+                // m_activeShape.RotateLeft();
+                m_activeShape.RotateClockwise(!m_clockwise);
+
             }
             else
             {
@@ -164,6 +178,12 @@ public class GameController : MonoBehaviour {
                     LandShape();
                 }
             }
+        } else if (Input.GetButtonDown("ToggleRot"))
+        {
+            ToggleRotDirection();
+        } else if(Input.GetButtonDown("Pause"))
+        {
+            TogglePause();
         }
 
         //if (Time.time > m_timeToDrop)
@@ -217,6 +237,8 @@ public class GameController : MonoBehaviour {
     public void Restart()
     {
         Debug.Log("Restarted");
+        // set time scale to 1 to solve a bug
+        Time.timeScale = 1f;
         Application.LoadLevel(Application.loadedLevel);
 
     }
@@ -243,5 +265,40 @@ public class GameController : MonoBehaviour {
 
         }
     }
+
+    public void ToggleRotDirection()
+    {
+        m_clockwise = !m_clockwise;
+        if(m_rotIconToggle)
+        {
+            // this only affects ui, real function is handled elsewhere
+            m_rotIconToggle.ToggleIcon(m_clockwise); // toggle direction
+
+        }
+    }
+
+    public void TogglePause()
+    {
+        if(m_gameOver)
+        {
+            return;
+        }
+        m_isPaused = !m_isPaused;
+        
+        // toggle pause panel
+        if(m_pausePanel) 
+        {
+            m_pausePanel.SetActive(m_isPaused);
+            if(m_soundManager)
+            {
+                m_soundManager.m_musicSource.volume = (m_isPaused) ? m_soundManager.m_musicVolume * 0.25f : m_soundManager.m_musicVolume;
+
+            }
+
+            Time.timeScale = (m_isPaused) ? 0 : 1;
+             
+        }
+    }
 }
+
  

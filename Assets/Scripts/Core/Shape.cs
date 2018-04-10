@@ -51,4 +51,15 @@ public class Shape : MonoBehaviour {
 	void Update () {
 		
 	}
+
+    public void RotateClockwise(bool clockwise)
+    {
+        if(clockwise)
+        {
+            RotateRight();
+        } else
+        {
+            RotateLeft();
+        }
+    }
 }
