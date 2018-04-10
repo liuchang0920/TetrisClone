@@ -38,16 +38,21 @@ public class GameController : MonoBehaviour {
     // game over panel
     public GameObject m_gameOverPanel;
 
+    // sound manager reference
+    SoundManager m_soundManager;
+
     // Use this for initialization
     void Start () {
         m_gameBoard = GameObject.FindWithTag("Board").GetComponent<Board>();
         m_spawner = GameObject.FindWithTag("Spawner").GetComponent<Spawner>();
+        m_soundManager = GameObject.FindObjectOfType<SoundManager>();
+
+
 
         // init time values
         m_timeToNextKeyLeftRight = Time.time + m_keyRepeatRateLeftRight;
         m_timeToNextKeyDown = Time.time + m_keyRepeatRateDown;
         m_timeToNextKeyRotate = Time.time + m_keyRepeatRateRotate;
-
 
         //if(m_spawner){
         //    if(m_activeShape == null) {
@@ -61,6 +66,12 @@ public class GameController : MonoBehaviour {
         if(!m_gameBoard) {
             Debug.LogWarning("There is no game board defined!");
         }
+
+        if(!m_soundManager)
+        {
+            Debug.LogWarning("sound manager not found!");
+        }
+
         if(!m_spawner) {
             Debug.LogWarning("Warning there is no spawner defined!");
         } else {
@@ -74,12 +85,18 @@ public class GameController : MonoBehaviour {
         {
             m_gameOverPanel.SetActive(false);
         }
+
+        //if(m_soundManager.m_fxEnabled && m_soundManager.m_moveSound)
+        //{
+        //    AudioSource.PlayClipAtPoint(m_soundManager.m_moveSound, Camera.main.transform.position, m_soundManager.m_fxVolume);
+
+        //}
     }
 	
 	// Update is called once per frame
 	void Update () {
 
-        if(!m_gameBoard || !m_spawner || !m_activeShape || m_gameOver) {
+        if(!m_gameBoard || !m_spawner || !m_activeShape || m_gameOver || !m_soundManager) {
             return;
         }
 
@@ -94,8 +111,13 @@ public class GameController : MonoBehaviour {
 
             if (!m_gameBoard.IsValidPosition(m_activeShape))
             {
+                PlaySound(m_soundManager.m_errorSound, 1.0f);
                 m_activeShape.MoveLeft();
                 Debug.Log("hit the right boundary");
+            } else
+            {
+                PlaySound(m_soundManager.m_moveSound, 1.0f);
+
             }
         } else if (Input.GetButton("MoveLeft") && Time.time > m_timeToNextKeyLeftRight || Input.GetButtonDown("MoveLeft")){
             m_activeShape.MoveLeft();
@@ -103,8 +125,14 @@ public class GameController : MonoBehaviour {
 
             if (!m_gameBoard.IsValidPosition(m_activeShape))
             {
+                PlaySound(m_soundManager.m_errorSound, 1.0f);
                 m_activeShape.MoveRight();
                 Debug.Log("hit the left boundary");
+            }
+            else
+            {
+                PlaySound(m_soundManager.m_moveSound, 1.0f);
+
             }
         }  else if (Input.GetButton("Rotate") && Time.time > m_timeToNextKeyRotate){
             m_activeShape.RotateRight();
@@ -112,8 +140,13 @@ public class GameController : MonoBehaviour {
 
             if (!m_gameBoard.IsValidPosition(m_activeShape))
             {
+                PlaySound(m_soundManager.m_errorSound, 1.0f);
                 m_activeShape.RotateLeft();
-                Debug.Log("rotate right");
+            }
+            else
+            {
+                PlaySound(m_soundManager.m_moveSound, 1.0f);
+
             }
         } else if (Input.GetButton("MoveDown") && Time.time > m_timeToNextKeyDown || (Time.time > m_timeToDrop))
         {
@@ -165,6 +198,20 @@ public class GameController : MonoBehaviour {
         m_activeShape = m_spawner.ShapeSpawner();
 
         m_gameBoard.ClearAllRows();
+
+        // add landing sound effects
+        PlaySound(m_soundManager.m_dropSound, 0.75f);
+
+        if(m_gameBoard.m_compoletedRows > 0)
+        {
+            if(m_gameBoard.m_compoletedRows > 1)
+            {
+                AudioClip randomVocal = m_soundManager.GetRandomClip(m_soundManager.m_vocalClips);
+                PlaySound(randomVocal);
+            }
+
+            PlaySound(m_soundManager.m_clearRowSound, 1.0f);
+        }
     }
 
     public void Restart()
@@ -182,6 +229,18 @@ public class GameController : MonoBehaviour {
         if (m_gameOverPanel)
         {
             m_gameOverPanel.SetActive(true);
+        }
+        PlaySound(m_soundManager.m_gameOverVocalClip, 5f);
+        PlaySound(m_soundManager.m_gameOverSound, 2.0f);
+
+    }
+    
+    void PlaySound(AudioClip clip, float volMultiplier=1.0f)
+    {
+        if(clip && m_soundManager.m_fxEnabled)
+        {
+            AudioSource.PlayClipAtPoint(clip, Camera.main.transform.position, Mathf.Clamp(m_soundManager.m_fxVolume * volMultiplier, 0.05f, 1.0f));
+
         }
     }
 }

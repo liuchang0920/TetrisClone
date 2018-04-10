@@ -9,6 +9,8 @@ public class Board : MonoBehaviour {
     public int m_width = 10;
     public int m_header = 8;
 
+    public int m_compoletedRows = 0;
+
     Transform[,] m_grid;
 
     void Awake() // prestart
@@ -118,10 +120,12 @@ public class Board : MonoBehaviour {
 
     public void ClearAllRows()
     {
-        for(int y=0;y<m_height; y++)
+        m_compoletedRows = 0;
+        for (int y=0;y<m_height; y++)
         {
             if(IsCompleted(y))
             {
+                m_compoletedRows++; 
                 ClearRow(y);
                 ShiftRowsDown(y + 1);
                 y--; // after shifted, retest current row
