@@ -41,6 +41,9 @@ public class GameController : MonoBehaviour {
     // sound manager reference
     SoundManager m_soundManager;
 
+    // score manager
+    ScoreManager m_scoreManager;
+
     // icon toggle for rotate goes in this class
     public IconToggle m_rotIconToggle;
     bool m_clockwise = true;
@@ -48,13 +51,14 @@ public class GameController : MonoBehaviour {
     // pause the game
     public bool m_isPaused = false;
     public GameObject m_pausePanel;
+       
 
     // Use this for initialization
     void Start () {
         m_gameBoard = GameObject.FindWithTag("Board").GetComponent<Board>();
         m_spawner = GameObject.FindWithTag("Spawner").GetComponent<Spawner>();
         m_soundManager = GameObject.FindObjectOfType<SoundManager>();
-
+        m_scoreManager = GameObject.FindObjectOfType<ScoreManager>();
 
         // init time values
         m_timeToNextKeyLeftRight = Time.time + m_keyRepeatRateLeftRight;
@@ -77,6 +81,10 @@ public class GameController : MonoBehaviour {
         if(!m_soundManager)
         {
             Debug.LogWarning("sound manager not found!");
+        }
+        if(!m_scoreManager)
+        {
+            Debug.LogWarning("There is no score manager defined.");
         }
 
         if(!m_spawner) {
@@ -107,7 +115,7 @@ public class GameController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-        if(!m_gameBoard || !m_spawner || !m_activeShape || m_gameOver || !m_soundManager) {
+        if(!m_gameBoard || !m_spawner || !m_activeShape || m_gameOver || !m_soundManager || !m_scoreManager) {
             return;
         }
 
@@ -222,9 +230,10 @@ public class GameController : MonoBehaviour {
         // add landing sound effects
         PlaySound(m_soundManager.m_dropSound, 0.75f);
 
-        if(m_gameBoard.m_compoletedRows > 0)
+        if(m_gameBoard.m_completedRows > 0)
         {
-            if(m_gameBoard.m_compoletedRows > 1)
+            m_scoreManager.ScoreLines(m_gameBoard.m_completedRows); // 当前这一块落下以后，消除的块数
+            if(m_gameBoard.m_completedRows > 1)
             {
                 AudioClip randomVocal = m_soundManager.GetRandomClip(m_soundManager.m_vocalClips);
                 PlaySound(randomVocal);
