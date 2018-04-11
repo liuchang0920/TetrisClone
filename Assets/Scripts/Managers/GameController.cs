@@ -51,7 +51,9 @@ public class GameController : MonoBehaviour {
     // pause the game
     public bool m_isPaused = false;
     public GameObject m_pausePanel;
-       
+
+    // ghost 
+    Ghost m_ghost;
 
     // Use this for initialization
     void Start () {
@@ -59,6 +61,7 @@ public class GameController : MonoBehaviour {
         m_spawner = GameObject.FindWithTag("Spawner").GetComponent<Spawner>();
         m_soundManager = GameObject.FindObjectOfType<SoundManager>();
         m_scoreManager = GameObject.FindObjectOfType<ScoreManager>();
+        m_ghost = GameObject.FindObjectOfType<Ghost>();
 
         // init time values
         m_timeToNextKeyLeftRight = Time.time + m_keyRepeatRateLeftRight;
@@ -96,6 +99,10 @@ public class GameController : MonoBehaviour {
             }
         }
 
+        if (!m_ghost)
+        {
+            Debug.LogWarning("no ghost");
+        }
         // reset game
         if(m_gameOverPanel)
         {
@@ -121,6 +128,16 @@ public class GameController : MonoBehaviour {
 
         PlayerInput();
 	}
+
+    void LateUpdate()
+    {
+        Debug.LogWarning("about to draw ghost");
+        if (m_ghost)
+        {
+            Debug.LogWarning("drawing ghost");
+            m_ghost.DrawGhost(m_activeShape, m_gameBoard);
+        }
+    }
 
     void PlayerInput() {
         // handle input
@@ -227,6 +244,12 @@ public class GameController : MonoBehaviour {
 
         m_gameBoard.ClearAllRows();
 
+        // reset ghost
+        if(m_ghost)
+        {
+            m_ghost.Reset();
+        }
+
         // add landing sound effects
         PlaySound(m_soundManager.m_dropSound, 0.75f);
 
@@ -308,6 +331,7 @@ public class GameController : MonoBehaviour {
              
         }
     }
+
 }
 
  
