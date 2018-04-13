@@ -55,6 +55,9 @@ public class GameController : MonoBehaviour {
     // ghost 
     Ghost m_ghost;
 
+    // holder
+    Holder m_holder;
+
     // Use this for initialization
     void Start () {
         m_gameBoard = GameObject.FindWithTag("Board").GetComponent<Board>();
@@ -62,12 +65,13 @@ public class GameController : MonoBehaviour {
         m_soundManager = GameObject.FindObjectOfType<SoundManager>();
         m_scoreManager = GameObject.FindObjectOfType<ScoreManager>();
         m_ghost = GameObject.FindObjectOfType<Ghost>();
+        m_holder = GameObject.FindObjectOfType<Holder>();
 
         // init time values
         m_timeToNextKeyLeftRight = Time.time + m_keyRepeatRateLeftRight;
         m_timeToNextKeyDown = Time.time + m_keyRepeatRateDown;
         m_timeToNextKeyRotate = Time.time + m_keyRepeatRateRotate;
-
+        
         //if(m_spawner){
         //    if(m_activeShape == null) {
         //        m_activeShape = m_spawner.ShapeSpawner();    
@@ -96,6 +100,7 @@ public class GameController : MonoBehaviour {
             m_spawner.transform.position = Vectorf.Round(m_spawner.transform.position); // ???
             if(!m_activeShape) {
                 m_activeShape = m_spawner.ShapeSpawner();
+                Debug.LogWarning("active shape: " + m_activeShape.ToString());
             }
         }
 
@@ -209,6 +214,9 @@ public class GameController : MonoBehaviour {
         } else if(Input.GetButtonDown("Pause"))
         {
             TogglePause();
+        } else if(Input.GetButtonDown("Hold"))
+        {
+            Hold();
         }
 
         //if (Time.time > m_timeToDrop)
@@ -249,7 +257,12 @@ public class GameController : MonoBehaviour {
         {
             m_ghost.Reset();
         }
+        // update can hold
+        if(m_holder)
+        {
+            m_holder.m_canRelease = true;
 
+        }
         // add landing sound effects
         PlaySound(m_soundManager.m_dropSound, 0.75f);
 
@@ -332,6 +345,41 @@ public class GameController : MonoBehaviour {
         }
     }
 
+    public void Hold()
+    {
+        if(!m_holder)
+        {
+            return;  
+        }
+        
+        if(!m_holder.m_heldShape)
+        {
+            m_holder.Catch(m_activeShape);
+            m_activeShape = m_spawner.ShapeSpawner();// is holder not empty skip
+            PlaySound(m_soundManager.m_holdSound);
+
+        }
+        else if(m_holder.m_canRelease)
+        {
+            Shape shape = m_activeShape;
+            m_activeShape = m_holder.Release();
+            m_activeShape.transform.position = m_spawner.transform.position;
+            m_holder.Catch(shape);
+            PlaySound(m_soundManager.m_holdSound);
+
+        }
+        else
+        {
+            Debug.LogWarning("wait for cool down");
+            PlaySound(m_soundManager.m_errorSound);
+
+        }
+
+        if (m_ghost)
+        {
+            m_ghost.Reset(); // update ghost .. 
+        }
+    }
 }
 
  

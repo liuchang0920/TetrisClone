@@ -34,6 +34,9 @@ public class SoundManager : MonoBehaviour {
 
     public AudioClip m_gameOverVocalClip;
 
+    // holder sound
+    public AudioClip m_holdSound;
+
     // icon toggles
     public IconToggle m_musicIconToggle;
     public IconToggle m_fxIconToggle;
