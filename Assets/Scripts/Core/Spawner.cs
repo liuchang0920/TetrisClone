@@ -14,6 +14,9 @@ public class Spawner : MonoBehaviour {
 
     float m_queueScale = 0.5f;
 
+    // spawner 
+    public ParticlePlayer m_spawnFX;
+
     Shape GetRandomShape() {
         int i = Random.Range(0, m_allShapes.Length);
         if (m_allShapes[i]) {
@@ -32,7 +35,16 @@ public class Spawner : MonoBehaviour {
         Debug.LogWarning(shape.ToString());
         shape.transform.position = transform.position;
         // scale to 1 so that on the board shows correctly
-        shape.transform.localScale = Vector3.one;
+        // shape.transform.localScale = Vector3.one;
+
+        // use coroutine to change shape scale
+        StartCoroutine(GrowShape(shape, transform.position, 0.25f));
+
+        // play spawner fx
+        if(m_spawnFX)
+        {
+            m_spawnFX.Play();
+        }
 
         if (shape) {
             return shape;
@@ -99,5 +111,22 @@ public class Spawner : MonoBehaviour {
         FillQueue();
 
         return firstShape;
+    }
+    
+    IEnumerator GrowShape(Shape shape, Vector3 position, float growTime = 0.5f)
+    {
+        float size = 0f;
+        growTime = Mathf.Clamp(growTime, 0.1f, 2f);
+        float sizeDelta = Time.deltaTime / growTime;
+
+        while(size < 1f)
+        {
+            shape.transform.localScale = new Vector3(size, size, size);
+            size += sizeDelta;
+            shape.transform.position = position;
+            yield return null; // wait until next frame
+        }
+
+        shape.transform.localScale = Vector3.one;
     }
 }

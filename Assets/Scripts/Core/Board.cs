@@ -13,6 +13,9 @@ public class Board : MonoBehaviour {
 
     Transform[,] m_grid;
 
+    // create reference to the particle player
+    public ParticlePlayer[] m_rowGlowFX = new ParticlePlayer[4];
+
     void Awake() // prestart
     {
         m_grid = new Transform[m_width, m_height];
@@ -68,6 +71,7 @@ public class Board : MonoBehaviour {
         if (shape == null) return;
         foreach(Transform child in shape.transform) {
             Vector2 pos = Vectorf.Round(child.position);
+            Debug.LogWarning("vector postiion: " + pos.x + " " + pos.y);
             m_grid[(int)pos.x, (int)pos.y] = child;
         }
     }
@@ -118,16 +122,30 @@ public class Board : MonoBehaviour {
         }
     }
 
-    public void ClearAllRows()
+    public IEnumerator ClearAllRows()
     {
         m_completedRows = 0;
+        // first loop, draw fx
+        for(int y=0;y<m_height;y++)
+        {
+            if(IsCompleted(y))
+            {
+                Debug.LogWarning("completed rows: " + m_completedRows);
+                ClearRowFX(m_completedRows, y);
+                m_completedRows++;
+            }
+        }
+
+        // wait for some time
+        yield return new WaitForSeconds(0.5f);
+
         for (int y=0;y<m_height; y++)
         {
             if(IsCompleted(y))
             {
-                m_completedRows++; 
                 ClearRow(y);
                 ShiftRowsDown(y + 1);
+                yield return new WaitForSeconds(0.3f);
                 y--; // after shifted, retest current row
             }
         }
@@ -143,5 +161,15 @@ public class Board : MonoBehaviour {
             }
         }
         return false;
+    }
+
+    void ClearRowFX(int idx, int y)
+    {
+
+        if(m_rowGlowFX[idx])
+        {
+            m_rowGlowFX[idx].transform.position = new Vector3(0, y, -2f);
+            m_rowGlowFX[idx].Play();
+        }
     }
 }

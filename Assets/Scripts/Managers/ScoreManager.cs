@@ -14,7 +14,7 @@ using UnityEngine.UI;
 public class ScoreManager : MonoBehaviour {
 
     int m_score = 0;
-    int m_lines = 0;
+    int m_lines = 1;
     int m_level = 1;
 
     public int m_linesPerLevel = 5;
@@ -25,6 +25,12 @@ public class ScoreManager : MonoBehaviour {
 
     const int m_minLines = 1;
     const int m_maxLines = 4;
+
+    public bool didLevelUp = false;
+
+    // level up fx
+    public ParticlePlayer m_levelUpFX;
+
 
     public void ScoreLines(int n)
     {
@@ -44,6 +50,13 @@ public class ScoreManager : MonoBehaviour {
                 m_score += 1200 * m_level;
                 break;
         }
+
+        m_lines -= n;
+        // check for level up
+        if(m_lines <= 0)
+        {
+            LevelUp();
+        }
         UpdateUIText();
     }
 
@@ -51,6 +64,7 @@ public class ScoreManager : MonoBehaviour {
 
         m_level = 1;
         m_lines = m_lines * m_level;
+        UpdateUIText();
     }
 
     void UpdateUIText()
@@ -80,11 +94,22 @@ public class ScoreManager : MonoBehaviour {
     }
 	// Use this for initialization
 	void Start () {
-		
+        Reset();
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		
 	}
+
+    public void LevelUp()
+    {
+        m_level++;
+        m_lines = m_linesPerLevel * m_level;
+        didLevelUp = true;
+        if(m_levelUpFX)
+        {
+            m_levelUpFX.Play();
+        }
+    }
 }

@@ -58,6 +58,9 @@ public class GameController : MonoBehaviour {
     // holder
     Holder m_holder;
 
+    // game over fx
+    public ParticlePlayer m_gameOverFX;
+
     // Use this for initialization
     void Start () {
         m_gameBoard = GameObject.FindWithTag("Board").GetComponent<Board>();
@@ -136,10 +139,10 @@ public class GameController : MonoBehaviour {
 
     void LateUpdate()
     {
-        Debug.LogWarning("about to draw ghost");
+        // Debug.LogWarning("about to draw ghost");
         if (m_ghost)
         {
-            Debug.LogWarning("drawing ghost");
+            // Debug.LogWarning("drawing ghost");
             m_ghost.DrawGhost(m_activeShape, m_gameBoard);
         }
     }
@@ -248,9 +251,13 @@ public class GameController : MonoBehaviour {
 
         m_activeShape.MoveUp();
         m_gameBoard.StoreShapeInGrid(m_activeShape);
+        // land shape fx
+        m_activeShape.LandShapeFX();
         m_activeShape = m_spawner.ShapeSpawner();
 
-        m_gameBoard.ClearAllRows();
+        // remove compoeted rows
+        // m_gameBoard.ClearAllRows();
+        m_gameBoard.StartCoroutine("ClearAllRows");
 
         // reset ghost
         if(m_ghost)
@@ -293,10 +300,17 @@ public class GameController : MonoBehaviour {
         m_gameOver = true;
         m_activeShape.MoveUp();
         Debug.LogWarning(m_activeShape.name + " is over the limit!");
-        if (m_gameOverPanel)
-        {
-            m_gameOverPanel.SetActive(true);
-        }
+        //if (m_gameOverPanel)
+        //{
+        //    m_gameOverPanel.SetActive(true);
+        //}
+        //if(m_gameOverFX)
+        //{
+        //    m_gameOverFX.Play();
+        //}
+
+        StartCoroutine(GameOverRoutine());
+
         PlaySound(m_soundManager.m_gameOverVocalClip, 5f);
         PlaySound(m_soundManager.m_gameOverSound, 2.0f);
 
@@ -378,6 +392,21 @@ public class GameController : MonoBehaviour {
         if (m_ghost)
         {
             m_ghost.Reset(); // update ghost .. 
+        }
+    }
+
+    // coroutine to delay the game over panel
+    IEnumerator GameOverRoutine()
+    {
+        if(m_gameOverFX)
+        {
+            m_gameOverFX.Play();
+        }
+        yield return new WaitForSeconds(0.3f);
+        
+        if(m_gameOverPanel)
+        {
+            m_gameOverPanel.SetActive(true);
         }
     }
 }

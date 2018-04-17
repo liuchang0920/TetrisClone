@@ -13,6 +13,7 @@ public class Ghost : MonoBehaviour
     {
         if (!m_ghostShape)
         {
+            Debug.LogWarning("original shape: " + originalShape.ToString());
             m_ghostShape = Instantiate(originalShape, originalShape.transform.position, originalShape.transform.rotation) as Shape;
             m_ghostShape.gameObject.name = "GhostShape";
             // get the children of the shape
@@ -29,6 +30,8 @@ public class Ghost : MonoBehaviour
             // if ghost exist, update to current position
             m_ghostShape.transform.position = originalShape.transform.position;
             m_ghostShape.transform.rotation = originalShape.transform.rotation;
+            // scale properly
+            m_ghostShape.transform.localScale = Vector3.one;
         }
 
         m_hitBottom = false;

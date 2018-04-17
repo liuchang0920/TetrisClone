@@ -1,0 +1,6 @@
+
+1. mateiral
+
+弄清楚每个设置项的含义
+
+velocity over life time, then space: local, world 

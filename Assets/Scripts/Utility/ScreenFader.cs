@@ -48,7 +48,7 @@ public class ScreenFader : MonoBehaviour {
             Color tempColor = new Color(m_originalColor.r, m_originalColor.g, m_originalColor.b, m_currentAlpha);
             m_graphic.color = tempColor;
         }
-        Debug.LogWarning("screen fader finished");
+        // Debug.LogWarning("screen fader finished");
     }
 
 	// Update is called once per frame
